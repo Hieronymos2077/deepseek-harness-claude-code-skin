@@ -1,0 +1,602 @@
+/* The tiled canvas wears the Claude Code editor-group chrome: panels sit flush
+   against one another, divided by a single hairline rather than a gutter, and
+   each one carries its own tab strip above its own title row. Rounded floating
+   cards with a gap between them read as a dashboard; flush panels divided by a
+   sash read as an editor, which is the arrangement being matched. */
+
+.canvas {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--dsh-claude-bg, #17191c);
+  color: var(--dsh-claude-text, #f0ece4);
+}
+
+.toolbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--dsh-claude-line, #35373b);
+  background: var(--dsh-claude-layer-1, #1d2024);
+}
+
+.toolbarTitle,
+.toolbarActions,
+.cardActions {
+  display: flex;
+  align-items: center;
+}
+
+.toolbarTitle {
+  min-width: 0;
+  gap: 10px;
+}
+
+.toolbarTitle strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow,
+.count,
+.zoom,
+.cardStatus,
+.pickerMeta,
+.emptyKicker {
+  color: var(--dsh-claude-muted, #999da5);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  color: var(--dsh-claude-accent, #f07850);
+}
+
+.count {
+  padding: 3px 7px;
+  border: 1px solid var(--dsh-claude-line, #35373b);
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.toolbarActions {
+  flex: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.toolbarButton,
+.cardAction,
+.tabClose,
+.pickerItem {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toolbarButton {
+  padding: 7px 9px;
+  color: var(--dsh-claude-muted, #b1b4bb);
+  font-size: 11px;
+}
+
+.toolbarButton:hover,
+.toolbarButton:focus-visible,
+.cardAction:hover,
+.cardAction:focus-visible,
+.tabClose:hover,
+.tabClose:focus-visible {
+  border-color: var(--dsh-claude-line-strong, #50535a);
+  color: var(--dsh-claude-text, #f0ece4);
+  outline: none;
+}
+
+.zoom {
+  min-width: 42px;
+  color: var(--dsh-claude-text, #f0ece4);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  display: flex;
+  width: min(320px, calc(100vw - 32px));
+  max-height: 360px;
+  flex-direction: column;
+  gap: 4px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--dsh-claude-line-strong, #50535a);
+  border-radius: 10px;
+  background: var(--dsh-claude-layer-2, #24272c);
+  box-shadow: 0 14px 40px rgb(0 0 0 / 34%);
+}
+
+.pickerHeading {
+  padding: 4px 6px 8px;
+  color: var(--dsh-claude-muted, #b1b4bb);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 8px;
+  text-align: left;
+}
+
+.pickerItem:hover,
+.pickerItem:focus-visible {
+  border-color: var(--dsh-claude-line-strong, #50535a);
+  background: var(--dsh-claude-hover, #2b2f35);
+  outline: none;
+}
+
+.pickerItem > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.pickerMeta {
+  color: var(--dsh-claude-accent, #f07850);
+  letter-spacing: 0.04em;
+}
+
+.pickerEmpty {
+  padding: 12px 8px;
+  color: var(--dsh-claude-muted, #999da5);
+  font-size: 12px;
+}
+
+.viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--dsh-claude-bg, #17191c);
+  overscroll-behavior: contain;
+}
+
+.viewport[data-drop-active] {
+  background: #1b211f;
+}
+
+/* While an edge or a tab is being dragged the pointer owns the gesture: text
+   selection and hover states inside the panels would otherwise fight it. */
+.viewport[data-gesture] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.world {
+  position: relative;
+  transform-origin: top left;
+}
+
+/* Flush editor grid: no gutter and no page padding, so the only thing between
+   two panels is the hairline each one draws on its own trailing edges. */
+.grid {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+
+/* The grid sizes its rows in pixels, so a tile must be free to shrink to its
+   row instead of asserting the standalone column's minimum. */
+.card:not([data-positioned]) {
+  min-height: 0;
+  min-width: 0;
+}
+
+.viewport[data-mode='tile'] {
+  overflow: hidden auto;
+}
+
+.viewport[data-mode='tile'] .emptyState {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  position: static;
+  align-self: center;
+  justify-self: center;
+  transform: none;
+}
+
+.segmented {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--dsh-claude-line, #35373b);
+  border-radius: 7px;
+  background: var(--dsh-claude-bg, #17191c);
+}
+
+.segment {
+  min-width: 26px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 5px;
+  color: var(--dsh-claude-muted, #999da5);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.segment:hover,
+.segment:focus-visible {
+  color: var(--dsh-claude-text, #f0ece4);
+  background: var(--dsh-claude-hover, #2b2f35);
+  outline: none;
+}
+
+.segment[data-active] {
+  color: var(--dsh-claude-text, #f0ece4);
+  background: var(--dsh-claude-layer-3, #35383e);
+}
+
+.primaryButton {
+  padding: 6px 11px;
+  border: 1px solid var(--dsh-claude-accent, #f07850);
+  border-radius: 6px;
+  color: var(--dsh-claude-accent, #f07850);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  color: var(--dsh-claude-bg, #17191c);
+  background: var(--dsh-claude-accent, #f07850);
+  outline: none;
+}
+
+/* ---- one editor group ------------------------------------------------- */
+
+.card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 0 solid var(--dsh-claude-line, #35373b);
+  background: var(--dsh-claude-bg, #17191c);
+}
+
+/* Tiled panels draw their own trailing hairlines, which become the sash
+   between neighbours; the grid's outer edges are drawn by the viewport. */
+.card:not([data-positioned]) {
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+}
+
+.card[data-positioned] {
+  position: absolute;
+  border-width: 1px;
+  border-radius: 8px;
+  min-width: 300px;
+  min-height: 340px;
+}
+
+.card[data-current] {
+  border-color: var(--dsh-claude-line-strong, #50535a);
+}
+
+.card[data-dragging] {
+  opacity: 0.7;
+}
+
+.card[data-positioned][data-dragging] {
+  box-shadow: 0 22px 44px rgb(0 0 0 / 38%);
+}
+
+/* Drop preview: the target slot fills with a translucent accent wash rather
+   than moving anything, so releasing is a decision the pointer can still undo
+   by moving away first. */
+.card[data-drop-target]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border: 1px solid var(--dsh-claude-accent, #f07850);
+  background: rgb(240 120 80 / 14%);
+  pointer-events: none;
+}
+
+/* Tab strip: the group's identity and the handle that moves it. */
+.cardTabs {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding-right: 6px;
+  border-bottom: 1px solid var(--dsh-claude-line, #35373b);
+  background: var(--dsh-claude-layer-2, #24272c);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.card[data-dragging] .cardTabs {
+  cursor: grabbing;
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+  padding: 0 6px 0 10px;
+  background: var(--dsh-claude-layer-1, #1d2024);
+}
+
+/* The active-tab marker is a top rule, the way the editor draws it. */
+.tab[data-active]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--dsh-claude-accent, #f07850);
+}
+
+.tabIcon {
+  flex: none;
+  color: var(--dsh-claude-accent, #f07850);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.tabTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.tabClose {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--dsh-claude-muted, #999da5);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tabClose:hover,
+.tabClose:focus-visible {
+  color: #f28a7f;
+}
+
+/* Panel title row, under the tab strip, as the Claude Code panel draws it. */
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--dsh-claude-line, #35373b);
+}
+
+.cardTitleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cardStatus {
+  flex: none;
+  margin-left: auto;
+  letter-spacing: 0.03em;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dsh-claude-muted, #999da5);
+}
+
+.statusDot[data-tone='live'] {
+  background: #52c998;
+  box-shadow: 0 0 0 3px rgb(82 201 152 / 13%);
+}
+
+.statusDot[data-tone='waiting'] {
+  background: #f2b35f;
+  box-shadow: 0 0 0 3px rgb(242 179 95 / 13%);
+}
+
+.cardActions {
+  flex: none;
+  gap: 4px;
+  align-self: center;
+}
+
+.cardAction {
+  padding: 4px 6px;
+  color: var(--dsh-claude-muted, #999da5);
+  font-size: 10px;
+}
+
+.cardBody {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sessionHost {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sessionHost > * {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+/* ---- resize handles --------------------------------------------------- */
+
+/* Sash: a generous invisible grab strip straddling the panel edge, showing an
+   accent rule only once the pointer is on it. Discoverability comes from the
+   cursor and that rule; a permanently drawn gripper on every edge of every
+   panel would be louder than the panels. */
+.resizeHandle {
+  position: absolute;
+  z-index: 7;
+  background: transparent;
+}
+
+.resizeHandle:hover,
+.resizeHandle:focus-visible,
+.card[data-resizing] .resizeHandle:active {
+  background: var(--dsh-claude-accent, #f07850);
+  outline: none;
+}
+
+.resizeHandle[data-edge='n'],
+.resizeHandle[data-edge='s'] {
+  right: 7px;
+  left: 7px;
+  height: 7px;
+  cursor: row-resize;
+}
+
+.resizeHandle[data-edge='e'],
+.resizeHandle[data-edge='w'] {
+  top: 7px;
+  bottom: 7px;
+  width: 7px;
+  cursor: col-resize;
+}
+
+.resizeHandle[data-edge='n'] { top: -3px; }
+.resizeHandle[data-edge='s'] { bottom: -3px; }
+.resizeHandle[data-edge='w'] { left: -3px; }
+.resizeHandle[data-edge='e'] { right: -3px; }
+
+.resizeHandle[data-edge='ne'],
+.resizeHandle[data-edge='nw'],
+.resizeHandle[data-edge='se'],
+.resizeHandle[data-edge='sw'] {
+  width: 12px;
+  height: 12px;
+}
+
+.resizeHandle[data-edge='nw'] { top: -3px; left: -3px; cursor: nwse-resize; }
+.resizeHandle[data-edge='ne'] { top: -3px; right: -3px; cursor: nesw-resize; }
+.resizeHandle[data-edge='sw'] { bottom: -3px; left: -3px; cursor: nesw-resize; }
+.resizeHandle[data-edge='se'] { bottom: -3px; right: -3px; cursor: nwse-resize; }
+
+/* ---- empty states ----------------------------------------------------- */
+
+.sessionEmpty,
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dsh-claude-muted, #999da5);
+  text-align: center;
+}
+
+.sessionEmpty {
+  padding: 24px;
+  font-size: 12px;
+}
+
+.emptyState {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(420px, calc(100% - 48px));
+  min-height: 170px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  border: 1px dashed var(--dsh-claude-line-strong, #50535a);
+  border-radius: 12px;
+  transform: translate(-50%, -50%);
+}
+
+.emptyState strong {
+  color: var(--dsh-claude-text, #f0ece4);
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.emptyState p {
+  max-width: 280px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.emptyKicker {
+  color: var(--dsh-claude-accent, #f07850);
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .toolbarActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .toolbarButton,
+  .pickerItem {
+    transition: none;
+  }
+}

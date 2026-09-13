@@ -25,6 +25,8 @@ Changed files, and nothing else:
 | `packages/client/ui-layout/src/client/AppFrame.tsx` | Supporting changes for the above |
 | `packages/client/ui-layout/src/client/AppFrame.module.css` | Supporting changes for the above |
 | `packages/client/ui-layout/src/client/index.ts` | Exports for the above |
+| `packages/client/web/src/claude-code-theme.css` | Flat dark palette applied throughout the web client |
+| `packages/client/web/src/boot.ts` | Imports the fork's web client theme |
 | `packages/client/ui-model-selection/src/client/ModelSelect.tsx` | Clamp the open model menu inside its nearest clipping ancestor |
 | `packages/llm/llm-pi-ai/src/config.ts` | Fix an `openRouterProviderRouting` guard that silently emptied the model catalog |
 

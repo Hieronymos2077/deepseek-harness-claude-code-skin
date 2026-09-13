@@ -12,6 +12,8 @@ Three changes to shipped source, plus one repository change.
 
 `packages/client/ui-layout/src/client/MultiChatCanvas.tsx` and its stylesheet, with supporting changes in `AppFrame.tsx` and `index.ts`.
 
+`packages/client/web/src/claude-code-theme.css`, loaded by `packages/client/web/src/boot.ts`, applies the matching flat dark palette throughout the web client.
+
 Upstream lays the multi chat canvas out as separated tiles. This fork rebuilds it as flush editor panels:
 
 - Panels sit flush against each other with no gutter, so the canvas reads as one surface rather than a set of cards.

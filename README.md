@@ -76,3 +76,15 @@ Bugs in the upstream project belong in [upstream's discussions](https://github.c
 Third party dependencies and their licences are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Attribution for this fork is in [NOTICE.md](NOTICE.md).
 
 Upstream's naming preferences are in [BRAND_GUIDELINES.md](BRAND_GUIDELINES.md), shipped here unaltered. They ask forks not to use the full "DeepSeek Harness" name and to prefer the short form `DSH`. This repository's name does not follow that preference, so it is stated plainly rather than glossed over: the name is descriptive, the disclaimer above is prominent, no DeepSeek or Anthropic brand assets are used, and if either company would rather this were named differently, say so on the issue tracker and it will be renamed.
+
+---
+
+## Contact
+
+This fork is maintained by **Alorny AI**. For custom AI agents, automation systems or websites, or to hire us, get in touch:
+
+- Website: [alorny.cloud](https://alorny.cloud)
+- Email: [contact@alorny.cloud](mailto:contact@alorny.cloud)
+- WhatsApp: [+263 71 441 2862](https://wa.me/263714412862)
+- Phone: [+263 71 441 2862](tel:+263714412862)
+- GitHub: [@Hieronymos2077](https://github.com/Hieronymos2077)
